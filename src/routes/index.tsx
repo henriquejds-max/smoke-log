@@ -45,7 +45,7 @@ const PACKS: Pack[] = [
   { name: "Marlboro Box 22", price: 6.3, cigarettes: 22, unit: 0.286, shade: "bg-pack-medium" },
   { name: "Marlboro Box 26", price: 7, cigarettes: 26, unit: 0.269, shade: "bg-pack-dark" },
 ];
-const DEFAULT_PACK = PACKS[0];
+const DEFAULT_PACK: Pack = { name: "Marlboro Classic", price: 6.2, cigarettes: 20, unit: 0.31, shade: "bg-pack-light" };
 const LIMITS = [10, 20, 50, 100];
 const money = new Intl.NumberFormat("pt-PT", { style: "currency", currency: "EUR" });
 const dateTime = new Intl.DateTimeFormat("pt-PT", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
@@ -266,9 +266,9 @@ function ConsumptionLog({ records, onDelete, onDeleteMany, onHome }: { records: 
       </div>
       {selected.size > 0 && <Button variant="destructive" className="batch-delete" onClick={() => { onDeleteMany(selected); setSelected(new Set()); }}>Eliminar selecionados ({selected.size})</Button>}
       <div className="pagination-controls">
-        {index > 0 && <Button variant="outline" onClick={() => setLimit(LIMITS[index - 1])}><ChevronUp />Reduzir</Button>}
+        {index > 0 && <Button variant="outline" onClick={() => setLimit(LIMITS[index - 1] ?? 10)}><ChevronUp />Reduzir</Button>}
         <span>A mostrar até {limit}</span>
-        {index < LIMITS.length - 1 && <Button variant="outline" onClick={() => setLimit(LIMITS[index + 1])}>Expandir<ChevronDown /></Button>}
+        {index < LIMITS.length - 1 && <Button variant="outline" onClick={() => setLimit(LIMITS[index + 1] ?? 100)}>Expandir<ChevronDown /></Button>}
       </div>
       <footer className="center-footer"><HomeButton onClick={onHome} /></footer>
     </section>

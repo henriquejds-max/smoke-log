@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState, type CSSProperties } from "react";
 import { CalendarDays, ChevronDown, ChevronLeft, ChevronUp, House, X } from "lucide-react";
+import { Logo } from "@/components/Logo";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -51,14 +52,6 @@ const money = new Intl.NumberFormat("pt-PT", { style: "currency", currency: "EUR
 const dateTime = new Intl.DateTimeFormat("pt-PT", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
 const shortDate = (date: Date) => date.toLocaleDateString("pt-PT", { day: "2-digit", month: "2-digit", year: "numeric" });
 const makeId = () => `${Date.now()}-${Math.random().toString(36).slice(2)}`;
-
-function Logo() {
-  return (
-    <div className="brand-mark" aria-label="Waste Management">
-      <i /><i /><i />
-    </div>
-  );
-}
 
 function Toast({ message, close }: { message: string; close: () => void }) {
   return (
@@ -157,8 +150,8 @@ function WasteManagement() {
       {toast && <Toast message={toast} close={() => setToast("")} />}
       {screen === "home" && <HomeScreen onPurchase={() => setScreen("purchases")} onConsume={addConsumption} onConsult={() => setScreen("consult")} onUndo={() => setUndoOpen(true)} />}
       {screen === "purchases" && <PurchasesScreen purchases={purchases} onAdd={addPurchase} onDelete={(id) => setConfirm({ kind: "purchase", id })} onHome={() => setScreen("home")} />}
-      {screen === "consumption-log" && <ConsumptionLog records={consumptions} onDelete={(id) => setConfirm({ kind: "consumption", id })} onDeleteMany={(ids) => { setConsumptions((items) => items.filter((item) => !ids.has(item.id))); notify("Registos selecionados eliminados."); }} onHome={() => setScreen("home")} />}
-      {screen === "consult" && <ConsultScreen records={consumptions} onHome={() => setScreen("home")} />}
+      {screen === "consumption-log" && <ConsumptionLog records={consumptions} onDelete={(id) => setConfirm({ kind: "consumption", id })} onDeleteMany={(ids) => { setConsumptions((items) => items.filter((item) => !ids.has(item.id))); notify("Registos selecionados eliminados."); }} onBack={() => setScreen("home")} onHome={() => setScreen("home")} />}
+      {screen === "consult" && <ConsultScreen records={consumptions} onBack={() => setScreen("home")} onHome={() => setScreen("home")} />}
 
       <Dialog open={undoOpen} onOpenChange={setUndoOpen}>
         <DialogContent className="action-dialog">
@@ -195,8 +188,8 @@ function HomeScreen({ onPurchase, onConsume, onConsult, onUndo }: { onPurchase: 
         <Button className="primary-action bg-consume text-consume-foreground hover:bg-consume/90" onClick={onConsume}>Registar Consumo</Button>
       </div>
       <nav className="bottom-nav">
-        <Button variant="outline" className="consult-button" onClick={onConsult}>Consultar</Button>
-        <Button variant="ghost" className="undo-button" onClick={onUndo}>Reverter</Button>
+        <Button variant="ghost" className="home-nav-action consult-button" onClick={onConsult}>Consultar</Button>
+        <Button variant="ghost" className="home-nav-action undo-button" onClick={onUndo}>Reverter</Button>
       </nav>
     </section>
   );
@@ -221,7 +214,11 @@ function PurchasesScreen({ purchases, onAdd, onDelete, onHome }: { purchases: Pu
             ))}
           </div>
           <Button variant="outline" className="history-link" onClick={() => setShowHistory(true)}>Consultar Histórico</Button>
-          <footer className="center-footer"><HomeButton onClick={onHome} /></footer>
+          <footer className="subpage-footer">
+            <BackButton onClick={onHome} />
+            <HomeButton onClick={onHome} />
+            <span aria-hidden="true" />
+          </footer>
         </>
       ) : (
         <>
@@ -234,7 +231,7 @@ function PurchasesScreen({ purchases, onAdd, onDelete, onHome }: { purchases: Pu
               </article>
             )) : <p className="empty-state">Ainda não existem compras registadas.</p>}
           </div>
-          <footer className="triple-footer">
+          <footer className="subpage-footer">
             <BackButton onClick={() => setShowHistory(false)} />
             <HomeButton onClick={onHome} />
             <Button variant="ghost" className="cancel-button" onClick={() => setEditing((value) => !value)}>{editing ? "Concluir" : "Anular"}</Button>
@@ -245,7 +242,7 @@ function PurchasesScreen({ purchases, onAdd, onDelete, onHome }: { purchases: Pu
   );
 }
 
-function ConsumptionLog({ records, onDelete, onDeleteMany, onHome }: { records: Consumption[]; onDelete: (id: string) => void; onDeleteMany: (ids: Set<string>) => void; onHome: () => void }) {
+function ConsumptionLog({ records, onDelete, onDeleteMany, onBack, onHome }: { records: Consumption[]; onDelete: (id: string) => void; onDeleteMany: (ids: Set<string>) => void; onBack: () => void; onHome: () => void }) {
   const [limit, setLimit] = useState(10);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const visible = records.slice(0, limit);
@@ -273,13 +270,17 @@ function ConsumptionLog({ records, onDelete, onDeleteMany, onHome }: { records: 
         <span>A mostrar até {limit}</span>
         {index < LIMITS.length - 1 && <Button variant="outline" onClick={() => setLimit(LIMITS[index + 1] ?? 100)}>Expandir<ChevronDown /></Button>}
       </div>
-      <footer className="center-footer"><HomeButton onClick={onHome} /></footer>
+      <footer className="subpage-footer">
+        <BackButton onClick={onBack} />
+        <HomeButton onClick={onHome} />
+        <span aria-hidden="true" />
+      </footer>
     </section>
   );
 }
 
 type Period = 1 | 7 | 14 | 30 | 90 | "custom";
-function ConsultScreen({ records, onHome }: { records: Consumption[]; onHome: () => void }) {
+function ConsultScreen({ records, onBack, onHome }: { records: Consumption[]; onBack: () => void; onHome: () => void }) {
   const [period, setPeriod] = useState<Period>(7);
   const today = new Date();
   const [customStart, setCustomStart] = useState(today.toISOString().slice(0, 10));
@@ -327,7 +328,11 @@ function ConsultScreen({ records, onHome }: { records: Consumption[]; onHome: ()
           </div>)}
         </div>
       </div>
-      <footer className="center-footer"><HomeButton onClick={onHome} /></footer>
+      <footer className="subpage-footer">
+        <BackButton onClick={onBack} />
+        <HomeButton onClick={onHome} />
+        <span aria-hidden="true" />
+      </footer>
     </section>
   );
 }

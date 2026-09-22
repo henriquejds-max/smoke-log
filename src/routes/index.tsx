@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
-import { CalendarDays, ChevronDown, ChevronUp, House, X } from "lucide-react";
+import { useEffect, useMemo, useState, type CSSProperties } from "react";
+import { CalendarDays, ChevronDown, ChevronLeft, ChevronUp, House, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -72,7 +72,6 @@ function Toast({ message, close }: { message: string; close: () => void }) {
 function PageHeader({ title, subtitle }: { title: string; subtitle?: string }) {
   return (
     <header className="page-header">
-      <Logo />
       <h1>{title}</h1>
       {subtitle && <p>{subtitle}</p>}
     </header>
@@ -81,6 +80,10 @@ function PageHeader({ title, subtitle }: { title: string; subtitle?: string }) {
 
 function HomeButton({ onClick }: { onClick: () => void }) {
   return <Button variant="ghost" className="home-button" onClick={onClick}><House />Home</Button>;
+}
+
+function BackButton({ onClick }: { onClick: () => void }) {
+  return <Button variant="ghost" className="back-button" onClick={onClick}><ChevronLeft />Voltar</Button>;
 }
 
 function WasteManagement() {
@@ -232,9 +235,9 @@ function PurchasesScreen({ purchases, onAdd, onDelete, onHome }: { purchases: Pu
             )) : <p className="empty-state">Ainda não existem compras registadas.</p>}
           </div>
           <footer className="triple-footer">
-            <Button variant="ghost" className="cancel-button" onClick={() => setEditing((value) => !value)}>{editing ? "Concluir" : "Anular"}</Button>
+            <BackButton onClick={() => setShowHistory(false)} />
             <HomeButton onClick={onHome} />
-            <span />
+            <Button variant="ghost" className="cancel-button" onClick={() => setEditing((value) => !value)}>{editing ? "Concluir" : "Anular"}</Button>
           </footer>
         </>
       )}
@@ -295,7 +298,15 @@ function ConsultScreen({ records, onHome }: { records: Consumption[]; onHome: ()
   }, [records, period, customStart, customEnd]);
   const total = data.points.reduce((sum, point) => sum + point.value, 0);
   const average = data.points.length ? total / data.points.length : 0;
-  const max = Math.max(...data.points.map((point) => point.value), 1);
+  const scaleMax = Math.max(...data.points.map((point) => point.value), average, 1);
+  const plotHeight = 190;
+  const segmentGap = Math.min(3, 95 / scaleMax);
+  const segmentHeight = Math.max(.5, (plotHeight - segmentGap * (scaleMax - 1)) / scaleMax);
+  const chartStyle = {
+    "--plot-height": `${plotHeight}px`,
+    "--segment-gap": `${segmentGap}px`,
+    "--segment-height": `${segmentHeight}px`,
+  } as CSSProperties;
   const title = period === 1 ? "Hoje" : period === 7 ? "Últimos 7 dias" : period === 14 ? "Últimos 14 dias" : period === 30 ? "Últimos 30 dias" : period === 90 ? "Últimos 3 meses" : "Período personalizado";
   return (
     <section className="content-screen consult-screen">
@@ -306,12 +317,12 @@ function ConsultScreen({ records, onHome }: { records: Consumption[]; onHome: ()
       </div>
       {period === "custom" && <div className="date-pickers"><label>De<input type="date" value={customStart} max={customEnd} onChange={(e) => setCustomStart(e.target.value)} /></label><label>Até<input type="date" value={customEnd} min={customStart} onChange={(e) => setCustomEnd(e.target.value)} /></label></div>}
       <div className="totals"><div><span>Cigarros</span><strong>{total}</strong></div><div><span>Custo</span><strong>{money.format(records.filter((item) => { const d = new Date(item.createdAt); return d >= data.start && d <= data.end; }).reduce((sum, item) => sum + item.unitCost, 0))}</strong></div></div>
-      <div className="chart-card">
-        {!data.daily && <div className="average-line" style={{ bottom: `${42 + (average / max) * 190}px` }}><span>Média {average.toFixed(1)}</span></div>}
+      <div className="chart-card" style={chartStyle}>
         <div className={`chart ${data.points.length > 31 ? "dense" : ""}`}>
+          {!data.daily && <div className="average-line" style={{ bottom: `calc(var(--chart-label-height) + ${(average / scaleMax) * plotHeight}px)` }}><span>Média {average.toFixed(1)}</span></div>}
           {data.points.map((point, pointIndex) => <div className="bar-column" key={`${point.label}-${pointIndex}`}>
             <strong>{point.value || ""}</strong>
-            {data.daily ? <div className="segment-stack">{Array.from({ length: point.value }, (_, i) => <i key={i} />)}</div> : <div className="solid-bar" style={{ height: `${Math.max(point.value ? 8 : 0, (point.value / max) * 190)}px` }} />}
+            {data.daily ? <div className="segment-stack">{Array.from({ length: point.value }, (_, i) => <i key={i} />)}</div> : <div className="solid-bar" style={{ height: `${Math.max(point.value ? 8 : 0, (point.value / scaleMax) * plotHeight)}px` }} />}
             <span>{data.points.length > 35 ? (pointIndex % 10 === 0 ? point.label : "") : data.points.length > 16 ? (pointIndex % 3 === 0 ? point.label : "") : point.label}</span>
           </div>)}
         </div>

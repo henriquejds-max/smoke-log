@@ -55,9 +55,21 @@ const makeId = () => `${Date.now()}-${Math.random().toString(36).slice(2)}`;
 
 function Toast({ message, close }: { message: string; close: () => void }) {
   return (
-    <div className="toast" role="status">
+    <div 
+      className="fixed left-1/2 -translate-x-1/2 z-50 flex items-center justify-between gap-3 bg-white/95 backdrop-blur-md px-4 py-2.5 rounded-xl shadow-lg border border-stone-200/80 text-stone-800 text-sm font-medium animate-in fade-in zoom-in-95 duration-200 max-w-[320px] w-[90%]"
+      style={{ top: '235px' }}
+      role="status"
+    >
       <span>{message}</span>
-      <Button variant="ghost" size="icon" onClick={close} aria-label="Fechar notificação"><X /></Button>
+      <Button 
+        variant="ghost" 
+        size="icon" 
+        className="h-6 w-6 text-stone-400 hover:text-stone-700 p-0" 
+        onClick={close} 
+        aria-label="Fechar notificação"
+      >
+        <X className="w-4 h-4" />
+      </Button>
     </div>
   );
 }
@@ -311,7 +323,14 @@ function ConsultScreen({ records, onBack, onHome }: { records: Consumption[]; on
   const title = period === 1 ? "Hoje" : period === 7 ? "Últimos 7 dias" : period === 14 ? "Últimos 14 dias" : period === 30 ? "Últimos 30 dias" : period === 90 ? "Últimos 3 meses" : "Período personalizado";
   return (
     <section className="content-screen consult-screen">
-      <PageHeader title={title} subtitle={`${shortDate(data.start)} – ${shortDate(data.end)}`} />
+      <PageHeader
+  title={title}
+  subtitle={
+    shortDate(data.start) === shortDate(data.end)
+      ? shortDate(data.start)
+      : `${shortDate(data.start)} – ${shortDate(data.end)}`
+  }
+/>
       <div className="filter-scroll">
         {([["Hoje", 1], ["7 dias", 7], ["14 dias", 14], ["30 dias", 30], ["3 meses", 90]] as [string, Period][]).map(([label, value]) => <Button key={label} variant={period === value ? "default" : "outline"} onClick={() => setPeriod(value)}>{label}</Button>)}
         <Button variant={period === "custom" ? "default" : "outline"} onClick={() => setPeriod("custom")}><CalendarDays />Calendário</Button>

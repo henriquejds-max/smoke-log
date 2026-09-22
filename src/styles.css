@@ -97,7 +97,7 @@ td { padding: .78rem .7rem; border-top: 1px solid var(--border); white-space: no
 .average-line { position: absolute; left: .6rem; right: .6rem; z-index: 2; border-top: 1px dashed var(--destructive); pointer-events: none; }
 .average-line span { position: absolute; right: 0; top: -19px; color: var(--destructive); background: var(--card); padding-left: .35rem; font-size: .65rem; }
 .toast { position: fixed; z-index: 80; top: max(1rem, env(safe-area-inset-top)); left: 50%; transform: translateX(-50%); width: calc(100% - 2rem); max-width: 420px; display: flex; align-items: center; justify-content: space-between; gap: .5rem; padding: .6rem .6rem .6rem 1rem; border: 1px solid var(--border); border-radius: var(--radius); background: var(--card); box-shadow: 0 14px 30px oklch(.22 .02 20 / .18); font-size: .82rem; animation: slide-in .2s ease-out; }
-.action-dialog { width: calc(100% - 2rem); border-radius: var(--radius-xl); }
+.action-dialog { width: calc(100% - 2rem); border-radius: var(--radius-xl); background-color: var(--card); opacity: 1; }
 .dialog-pair { display: grid; grid-template-columns: 1fr 1fr; gap: .6rem; }
 .dialog-pair button { margin: 0; }
 @keyframes slide-in { from { opacity: 0; transform: translate(-50%, -10px); } }
